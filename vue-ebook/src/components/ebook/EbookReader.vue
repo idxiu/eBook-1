@@ -7,6 +7,7 @@
 <script>
 import Epub from 'epubjs'
 import { ebookMixin } from '../../utils/mixin'
+import { flatten } from '../../utils/book'
 import {
   getFontFamily,
   saveFontFamily,
@@ -38,11 +39,6 @@ export default {
         this.setFontFamilyVisible(false)
       }
       this.setMenuVisible(!this.menuVisible)
-    },
-    hideTitleAndMenu () {
-      this.setMenuVisible(false)
-      this.setSettingVisible(-1)
-      this.setFontFamilyVisible(false)
     },
     initFontFamily () {
       const font = getFontFamily(this.fileName)
@@ -116,6 +112,26 @@ export default {
         event.stopPropagation()
       })
     },
+    parseBook () {
+      this.book.loaded.cover.then(cover => {
+        this.book.archive.createUrl(cover).then(url => {
+          this.setCover(url)
+        })
+      })
+      this.book.loaded.metadata.then(metadata => {
+        this.setMetadata(metadata)
+      })
+      this.book.loaded.navigation.then(nav => {
+        const navItem = flatten(nav.toc)
+        function find (item, level) {
+          return !item.parent ? level : find(navItem.filter(parentItem => parentItem.id === item.parent)[0], ++level)
+        }
+        navItem.forEach(item => {
+          item.level = find(item, 0)
+        })
+        this.setNavigation(navItem)
+      })
+    },
     initEpub () {
       // 获取真实地址
       const url = process.env.VUE_APP_RES_URL + '/epub/' + this.fileName + '.epub'
@@ -124,6 +140,7 @@ export default {
       this.setCurrentBook(this.book)
       this.initRendition()
       this.initGesture()
+      this.parseBook()
       this.book.ready.then(() => {
         return this.book.locations.generate(750 * (window.innerWidth / 375) * (16 / getFontSize(this.fileName))).then(() => {
           this.setBookAvailable(true)
