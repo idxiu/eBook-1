@@ -41,11 +41,6 @@ export default {
   updated () {
     this.updateProgressBg()
   },
-  computed: {
-    getSectionName () {
-      return this.section ? this.navigation[this.section].label : ''
-    }
-  },
   methods: {
     onProgressChange (progress) {
       this.setProgress(progress).then(() => {

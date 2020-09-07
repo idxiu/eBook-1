@@ -34,6 +34,7 @@
 import { ebookMixin } from '../../utils/mixin'
 import EbookSlideContents from './EbookSlideContents'
 import EbookLoading from './EbookLoading'
+import EbookSlideBookmark from './EbookSlideBookmark'
 
 export default {
   name: 'EbookSlide',
@@ -44,7 +45,8 @@ export default {
   data () {
     return {
       currentTab: 1,
-      content: EbookSlideContents
+      content: EbookSlideContents,
+      bookmark: EbookSlideBookmark
     }
   },
   methods: {

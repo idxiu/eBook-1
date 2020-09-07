@@ -1,6 +1,14 @@
 <template>
   <div class="ebook-reader">
     <div id="read"></div>
+    <div class="ebook-reader-mask"
+         @click="onMaskClick"
+         @touchmove="move"
+         @touchend="moveEnd"
+         @mousemove.left="onMouseMove"
+         @mousedown.left="onMouseEnter"
+         @mouseup.left="onMouseEnd"
+    ></div>
   </div>
 </template>
 
@@ -21,6 +29,81 @@ export default {
   name: 'EbookReader',
   mixins: [ebookMixin],
   methods: {
+    // 1. 鼠标进入
+    // 2. 鼠标进入后的移动
+    // 3. 鼠标按下后松开
+    // 4. 鼠标松开后的移动
+    onMouseMove (e) {
+      if (this.bookAvailable && !this.menuVisible) {
+        if (this.mouseState) {
+          if (this.mouseState === 1) {
+            this.mouseState = 2
+          } else if (this.mouseState === 2) {
+            let offsetY = 0
+            if (this.firstOffsetY) {
+              offsetY = e.clientY - this.firstOffsetY
+              this.setOffsetY(offsetY)
+            } else {
+              this.firstOffsetY = e.clientY
+            }
+          }
+        }
+      }
+      e.preventDefault()
+      e.stopPropagation()
+    },
+    onMouseEnter (e) {
+      this.mouseState = 1
+      this.mouseStartTime = e.timeStamp
+      e.preventDefault()
+      e.stopPropagation()
+    },
+    onMouseEnd (e) {
+      if (this.mouseState === 2) {
+        this.setOffsetY(0)
+        this.firstOffsetY = null
+        this.mouseState = 3
+      } else {
+        this.mouseState = 4
+      }
+      const time = e.timeStamp - this.mouseStartTime
+      if (time < 100) {
+        this.mouseState = 4
+      }
+      e.preventDefault()
+      e.stopPropagation()
+    },
+    onMaskClick (e) {
+      if (this.mouseState && (this.mouseState === 2 || this.mouseState === 3)) {
+        return
+      }
+      const offsetX = e.offsetX
+      const width = window.innerWidth
+      if (offsetX > 0 && offsetX < width * 0.3) {
+        this.prevPage()
+      } else if (offsetX < width && offsetX > width * 0.7) {
+        this.nextPage()
+      } else {
+        this.toggleTitleAndMenu()
+      }
+    },
+    move (e) {
+      if (!this.menuVisible && this.bookAvailable) {
+        let offsetY = 0
+        if (this.firstOffsetY) {
+          offsetY = e.changedTouches[0].clientY - this.firstOffsetY
+          this.setOffsetY(offsetY)
+        } else {
+          this.firstOffsetY = e.changedTouches[0].clientY
+        }
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    },
+    moveEnd () {
+      this.firstOffsetY = null
+      this.setOffsetY(0)
+    },
     nextPage () {
       this.rendition.next().then(() => {
         this.refreshLocation()
@@ -73,7 +156,8 @@ export default {
     initRendition () {
       this.rendition = this.currentBook.renderTo('read', {
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
+        method: 'default'
       })
       const location = getLocation(this.fileName)
       this.display(location, () => {
@@ -142,7 +226,31 @@ export default {
       this.initGesture()
       this.parseBook()
       this.book.ready.then(() => {
-        return this.book.locations.generate(750 * (window.innerWidth / 375) * (16 / getFontSize(this.fileName))).then(() => {
+        return this.book.locations.generate(750 * (window.innerWidth / 375) * (16 / getFontSize(this.fileName))).then(locations => {
+          this.navigation.forEach(nav => {
+            nav.pageList = []
+          })
+          locations.forEach(item => {
+            const loc = item.match(/\[(.*)\]!/)[1]
+            this.navigation.forEach(nav => {
+              if (nav.href) {
+                const href = nav.href.match(/^(.*)\.html/)[1]
+                if (href === loc) {
+                  nav.pageList.push(item)
+                }
+              }
+            })
+          })
+          let currentPage = 1
+          this.navigation.forEach((nav, index) => {
+            if (index === 0) {
+              nav.page = 1
+            } else {
+              nav.page = currentPage
+            }
+            currentPage += nav.pageList.length + 1
+          })
+          this.setPagelist(locations)
           this.setBookAvailable(true)
           this.refreshLocation()
         })
@@ -160,5 +268,17 @@ export default {
 
 <style scoped lang="scss">
   @import "../../assets/styles/global";
-
+  .ebook-reader {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    .ebook-reader-mask {
+      height: 100%;
+      width: 100%;
+      z-index: 150;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  }
 </style>
