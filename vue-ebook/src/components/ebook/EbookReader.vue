@@ -24,6 +24,7 @@ import {
   getTheme,
   saveTheme, getLocation
 } from '../../utils/localStorage'
+import { getLocalForage } from '../../utils/localForage'
 global.epub = Epub
 export default {
   name: 'EbookReader',
@@ -216,9 +217,7 @@ export default {
         this.setNavigation(navItem)
       })
     },
-    initEpub () {
-      // 获取真实地址
-      const url = process.env.VUE_APP_RES_URL + '/epub/' + this.fileName + '.epub'
+    initEpub (url) {
       // 解析电子书
       this.book = new Epub(url)
       this.setCurrentBook(this.book)
@@ -258,9 +257,20 @@ export default {
     }
   },
   mounted () {
-    // 解析输入的地址 转换
-    this.setFileName(this.$route.params.filename.split('|').join('/')).then(() => {
-      this.initEpub()
+    const books = this.$route.params.filename.split('|')
+    const fileName = books[1]
+    getLocalForage(fileName, (err, blob) => {
+      if (!err && blob) {
+        this.setFileName(books.join('/')).then(() => {
+          this.initEpub(blob)
+        })
+      } else {
+        // 解析输入的地址 转换
+        this.setFileName(this.$route.params.filename.split('|').join('/')).then(() => {
+          const url = process.env.VUE_APP_RES_URL + '/epub/' + this.fileName + '.epub'
+          this.initEpub(url)
+        })
+      }
     })
   }
 }

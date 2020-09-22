@@ -21,11 +21,27 @@ const routes = [
   {
     path: '/store',
     component: () => import('../views/store/index.vue'),
-    redirect: '/store/home',
+    redirect: '/store/shelf',
     children: [
       {
         path: 'home',
         component: () => import('../views/store/StoreHome')
+      },
+      {
+        path: 'list',
+        component: () => import('../views/store/StoreList')
+      },
+      {
+        path: 'detail',
+        component: () => import('../views/store/StoreDetail')
+      },
+      {
+        path: 'shelf',
+        component: () => import('../views/store/StoreShelf')
+      },
+      {
+        path: 'category',
+        component: () => import('../views/store/StoreCategory')
       }
     ]
   }

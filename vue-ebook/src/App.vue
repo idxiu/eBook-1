@@ -17,5 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <style scoped lang="scss">
   @import "./assets/styles/global";
-
+  #app {
+    height: 100%;
+    width: 100%;
+  }
 </style>
