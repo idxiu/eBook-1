@@ -267,7 +267,7 @@ export default {
       } else {
         // 解析输入的地址 转换
         this.setFileName(this.$route.params.filename.split('|').join('/')).then(() => {
-          const url = process.env.VUE_APP_RES_URL + '/epub/' + this.fileName + '.epub'
+          const url = process.env.VUE_APP_EPUB_URL + '/' + this.fileName + '.epub'
           this.initEpub(url)
         })
       }

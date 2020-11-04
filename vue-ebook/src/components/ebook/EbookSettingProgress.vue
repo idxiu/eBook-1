@@ -60,7 +60,7 @@ export default {
       this.$refs.progress.style.cssText = `background-size:${this.progress}% 100% !important`
     },
     prevSection () {
-      console.log('prev')
+      // console.log('prev')
       if (this.section > 0 && this.bookAvailable) {
         this.setSection(this.section - 1).then(() => {
           const sectionInfo = this.currentBook.section(this.section)

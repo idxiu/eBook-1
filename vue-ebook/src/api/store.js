@@ -1,5 +1,13 @@
 import axios from 'axios'
 import { setLocalForage } from '../utils/localForage'
+
+export function flatList () {
+  return axios({
+    method: 'get',
+    url: `${process.env.VUE_APP_BOOK_URL}/book/flat-list`
+  })
+}
+
 export function download (book, onSuccess, onError, onProgress) {
   if (!onProgress) {
     onProgress = onError
@@ -42,12 +50,14 @@ export function detail (book) {
     }
   })
 }
+
 export function list () {
   return axios({
     method: 'get',
     url: `${process.env.VUE_APP_BASE_URL}/book/list`
   })
 }
+
 export function shelf () {
   return axios({
     method: 'get',

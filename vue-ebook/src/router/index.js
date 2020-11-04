@@ -42,6 +42,10 @@ const routes = [
       {
         path: 'category',
         component: () => import('../views/store/StoreCategory')
+      },
+      {
+        path: 'speaking',
+        component: () => import('../views/store/StoreSpeaking')
       }
     ]
   }
